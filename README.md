@@ -3,31 +3,42 @@
 A private baby shopping planner and budget tracker for two parents (Daddy and Mummy).
 Next.js 15 · TypeScript · Tailwind CSS · Supabase (Auth, Postgres with RLS, private Storage, Realtime).
 
-## Setup (about 15 minutes)
+## Setup (free: GitHub Pages + Supabase free plan)
 
-1. **Create a Supabase project** at supabase.com (free tier is fine).
-2. **Lock down sign-ups:** Authentication → Sign In / Providers → Email → turn **off** "Allow new users to sign up". (Even if this were left on, Row Level Security would show a stranger nothing.)
-3. **Create the two accounts:** Authentication → Users → *Add user* → create Daddy and Mummy with email + password (tick "Auto confirm user").
-4. **Run the SQL** in the SQL editor, in this order:
-   1. `supabase/schema.sql`: tables, Row Level Security, realtime, private image bucket
-   2. `supabase/parents.sql`: **edit the two emails first** so they match the accounts from step 3 (lowercase)
-   3. `supabase/seed.sql`: the 10 categories and 104 starter items (safe to run once)
-5. **Connect the app:** Project Settings → API. Copy the URL and `anon` public key:
-   ```
-   cp .env.example .env.local   # then fill in both values
-   ```
-6. **Run it:**
-   ```
-   npm install
-   npm run dev        # http://localhost:3000
-   ```
-   To deploy (e.g. Vercel), add the same two environment variables there.
+The app is a **static site**. GitHub Pages serves it for free, and Supabase (free plan) provides login, database and picture storage.
+
+### A. Supabase (about 10 minutes)
+1. Create a free project at supabase.com.
+2. Authentication → Providers → Email: turn **off** "Allow new users to sign up".
+3. Authentication → Users → *Add user*: create Daddy and Mummy (email + password, tick "Auto confirm user").
+4. SQL Editor: run, in order, `supabase/schema.sql`, then `supabase/parents.sql` (**edit the two emails first**, lowercase, in the SQL editor only; do not commit them), then `supabase/seed.sql`.
+5. Project Settings → API: copy the **Project URL** and the **anon public** key. (Never use `service_role`.)
+
+### B. GitHub Pages
+1. Put this project in a GitHub repository (the workflow file `.github/workflows/deploy.yml` must be included; it is a hidden folder).
+   *GitHub Pages is free only for **public** repositories* on the free plan (private-repo Pages needs a paid plan). That is fine here: the code contains no secrets, and your data is protected by Supabase login and Row Level Security, not by hiding the code.
+2. Repository → Settings → Secrets and variables → Actions → *New repository secret*: add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Repository → Settings → Pages → Source: **GitHub Actions**.
+4. Push to `main` (or Actions → "Deploy to GitHub Pages" → Run workflow). After about 2 minutes the site is at `https://YOUR-USER.github.io/REPO-NAME/`.
+5. Supabase → Authentication → URL Configuration: set Site URL to that address.
+
+### Run locally (optional)
+```
+cp .env.example .env.local   # fill in URL + anon key
+npm install
+npm run dev                  # http://localhost:3000
+```
 
 ## How security works
-- `middleware.ts` rejects any request without a valid Supabase session; the app layout also confirms the account is one of the two in `allowed_emails`.
-- **Row Level Security** on every table allows access only when `is_family()` is true (the JWT email is in `allowed_emails`). Logged-out and unlisted users get nothing, whatever the frontend does.
-- Product pictures live in a **private** bucket, shown through 1-hour signed URLs, and storage policies use the same family check.
-- Only the **anon** key is used in the app. Never put the `service_role` key in it.
+- Hosting is static, so the page files are public, but they contain **no family data**.
+- All data and pictures live in Supabase. **Row Level Security** only allows a request when the signed-in email is one of the two in `allowed_emails`. Anyone else, or anyone not signed in, gets nothing, whatever the frontend does.
+- The pictures bucket is private and shown through short-lived signed links.
+- The anon key in the built site is public by design; it can do nothing without a valid parent login. Never put the `service_role` key anywhere in this project.
+- The app also checks sign-in in the browser to decide whether to show the pages or send you to the login screen.
+
+## Free-plan notes
+- Supabase pauses free projects after about a week with no activity. Opening the app regularly avoids this; if it pauses, click *Restore* in the Supabase dashboard (data is kept).
+- Free limits (500 MB database, 1 GB storage) are far more than a baby list needs.
 
 ## Notes
 - Sample prices are **editable estimates, not verified market prices**. Edit anything.

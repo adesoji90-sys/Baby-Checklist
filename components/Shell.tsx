@@ -26,7 +26,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
   const m = useItemModals();
   const active = (h: string) => (h === "/" ? path === "/" : path.startsWith(h));
 
-  async function logout() { await createClient().auth.signOut(); router.replace("/login"); router.refresh(); }
+  async function logout() { await createClient().auth.signOut(); router.replace("/login/"); }
 
   return (
     <div className="min-h-screen lg:flex">

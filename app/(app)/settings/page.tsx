@@ -44,7 +44,7 @@ export default function SettingsPage() {
     if (error) return setM3({ ok: false, t: error.message });
     setPw(""); setPw2(""); setM3({ ok: true, t: "Password changed." });
   }
-  async function logout() { await sb.auth.signOut(); router.replace("/login"); router.refresh(); }
+  async function logout() { await sb.auth.signOut(); router.replace("/login/"); }
 
   return (
     <>

@@ -1,5 +1,5 @@
 "use client";
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Sprout } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -15,11 +15,14 @@ function Form() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(params.get("error") === "unauthorised" ? "That account is not authorised for this family app." : "");
 
+  // Already signed in? Go straight to the app.
+  useEffect(() => { if (params.get("error")) return; createClient().auth.getUser().then(({ data }: { data: { user: unknown } }) => { if (data.user) router.replace("/"); }); }, [params, router]);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault(); setBusy(true); setError("");
     const { error } = await createClient().auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     if (error) { setError("Incorrect email or password."); setBusy(false); return; }
-    router.replace("/"); router.refresh();
+    router.replace("/");
   }
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-b from-cream to-sage-100 p-5">
