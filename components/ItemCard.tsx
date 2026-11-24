@@ -22,7 +22,11 @@ export default function ItemCard({ item, onBuy, onEdit, onDelete }: { item: Item
           Bought <b className="text-ink">{item.quantity_purchased}</b>/{item.quantity_required}
           {st !== "full" && <> · <b className="text-clay-600">{out} to go</b></>}
         </p>
-        <p className="text-xs text-ink-soft">Est. {money(estimatedCost(item), s.currency)}{item.quantity_purchased > 0 && <> · Spent {money(actualCost(item), s.currency)}{item.purchase_date ? ` on ${fmtDate(item.purchase_date)}` : ""}</>}</p>
+        <p className="text-xs text-ink-soft">
+          {estimatedCost(item) > 0 && <>Est. {money(estimatedCost(item), s.currency)}</>}
+          {estimatedCost(item) > 0 && item.quantity_purchased > 0 && " · "}
+          {item.quantity_purchased > 0 ? <>Spent {money(actualCost(item), s.currency)}{item.purchase_date ? ` on ${fmtDate(item.purchase_date)}` : ""}</> : estimatedCost(item) === 0 && "No price yet"}
+        </p>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {st !== "full" ? <button onClick={onBuy} className="btn-soft px-3 py-1.5 text-xs"><ShoppingCart size={14} />Record purchase</button>
             : <span className="chip bg-sage-100 text-sage-700"><Check size={12} className="mr-1" />Done</span>}

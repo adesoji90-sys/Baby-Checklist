@@ -18,7 +18,7 @@ export function ItemFormModal({ item, defaultCategory, onClose }: { item?: Item;
   const [f, setF] = useState({
     name: item?.name ?? "", category_id: item?.category_id ?? defaultCategory ?? categories[0]?.id ?? "",
     quantity_required: String(item?.quantity_required ?? 1), quantity_purchased: String(item?.quantity_purchased ?? 0),
-    est_unit_price: String(item?.est_unit_price ?? ""), actual_unit_price: item?.actual_unit_price == null ? "" : String(item.actual_unit_price),
+    est_unit_price: item?.est_unit_price ? String(item.est_unit_price) : "", actual_unit_price: item?.actual_unit_price == null ? "" : String(item.actual_unit_price),
     brand: item?.brand ?? "", vendor: item?.vendor ?? "", purchase_date: item?.purchase_date ?? "",
     priority: (item?.priority ?? "important") as Priority, notes: item?.notes ?? "",
   });
@@ -67,7 +67,7 @@ export function ItemFormModal({ item, defaultCategory, onClose }: { item?: Item;
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div><label>Qty required</label><input type="number" inputMode="numeric" min={0} step={1} value={f.quantity_required} onChange={(e) => set("quantity_required", e.target.value)} /></div>
-          <div><label>Est. unit price ({settings.currency})</label><input type="number" inputMode="decimal" min={0} step="any" value={f.est_unit_price} onChange={(e) => set("est_unit_price", e.target.value)} /></div>
+          <div><label>Est. price each (optional)</label><input type="number" inputMode="decimal" min={0} step="any" value={f.est_unit_price} onChange={(e) => set("est_unit_price", e.target.value)} /></div>
           <div><label>Qty purchased</label><input type="number" inputMode="numeric" min={0} step={1} value={f.quantity_purchased} onChange={(e) => set("quantity_purchased", e.target.value)} /></div>
           <div><label>Actual unit price</label><input type="number" inputMode="decimal" min={0} step="any" value={f.actual_unit_price} onChange={(e) => set("actual_unit_price", e.target.value)} /></div>
         </div>
@@ -100,7 +100,7 @@ export function PurchaseModal({ item, onClose }: { item: Item; onClose: () => vo
   const { reload, settings } = useData();
   const left = outstandingQty(item);
   const [qty, setQty] = useState(String(left || 1));
-  const [price, setPrice] = useState(String(item.actual_unit_price ?? item.est_unit_price ?? ""));
+  const [price, setPrice] = useState(item.actual_unit_price != null ? String(item.actual_unit_price) : item.est_unit_price ? String(item.est_unit_price) : "");
   const [date, setDate] = useState(item.purchase_date ?? todayISO());
   const [vendor, setVendor] = useState(item.vendor ?? "");
   const [notes, setNotes] = useState(item.notes ?? "");
@@ -110,6 +110,7 @@ export function PurchaseModal({ item, onClose }: { item: Item; onClose: () => vo
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (add < 1) return setErr("Enter how many you bought (at least 1).");
+    if (price.trim() === "") return setErr("Enter the price you paid for each one.");
     if (num(price) < 0) return setErr("Price cannot be negative.");
     setBusy(true);
     const { error } = await createClient().from("items").update({
@@ -126,7 +127,7 @@ export function PurchaseModal({ item, onClose }: { item: Item; onClose: () => vo
       <form onSubmit={save} className="space-y-4">
         <div className="grid grid-cols-2 gap-3">
           <div><label>Quantity bought now</label><input type="number" inputMode="numeric" min={1} step={1} value={qty} onChange={(e) => setQty(e.target.value)} autoFocus /></div>
-          <div><label>Price paid each ({settings.currency})</label><input type="number" inputMode="decimal" min={0} step="any" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+          <div><label>Price paid each ({settings.currency})</label><input type="number" inputMode="decimal" min={0} step="any" placeholder="Enter price paid" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div><label>Purchase date</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>

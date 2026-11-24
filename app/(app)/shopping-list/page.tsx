@@ -37,7 +37,7 @@ export default function ShoppingListPage() {
     for (const g of groups) {
       autoTable(doc, {
         startY: y, head: [[g.c.name, "Qty", "Est. each", "Est. total"]],
-        body: g.its.map((i) => [`${itemStatus(i) === "full" ? "[x]" : "[ ]"} ${i.name}${i.brand ? ` (${i.brand})` : ""}`, String(onlyOut ? outstandingQty(i) : i.quantity_required), pdfMoney(i.est_unit_price), pdfMoney(onlyOut ? outstandingCost(i) : estimatedCost(i))]),
+        body: g.its.map((i) => [`${itemStatus(i) === "full" ? "[x]" : "[ ]"} ${i.name}${i.brand ? ` (${i.brand})` : ""}`, String(onlyOut ? outstandingQty(i) : i.quantity_required), i.est_unit_price > 0 ? pdfMoney(i.est_unit_price) : "", (onlyOut ? outstandingCost(i) : estimatedCost(i)) > 0 ? pdfMoney(onlyOut ? outstandingCost(i) : estimatedCost(i)) : ""]),
         headStyles: { fillColor: [107, 129, 89] }, styles: { fontSize: 9 }, columnStyles: { 1: { halign: "right", cellWidth: 16 }, 2: { halign: "right", cellWidth: 30 }, 3: { halign: "right", cellWidth: 32 } },
         margin: { left: 14, right: 14 },
       });
@@ -46,7 +46,7 @@ export default function ShoppingListPage() {
     }
     doc.setFontSize(11); doc.setTextColor(0);
     if (y > 280) { doc.addPage(); y = 20; }
-    doc.text(`Estimated total: ${pdfMoney(total)}`, 14, y + 2);
+    if (total > 0) doc.text(`Estimated total: ${pdfMoney(total)}`, 14, y + 2);
     doc.save(`baby-shopping-list-${new Date().toISOString().slice(0, 10)}.pdf`);
   }
 
@@ -82,15 +82,15 @@ export default function ShoppingListPage() {
                       <div className="min-w-0 flex-1">
                         <p className={`truncate text-[15px] ${done ? "text-ink-mute line-through" : ""}`}>{i.name}{i.brand && <span className="text-ink-mute"> · {i.brand}</span>}</p>
                         <p className="text-xs text-ink-soft">
-                          {onlyOut || !done ? <>Need <b>{outstandingQty(i)}</b>{i.quantity_purchased > 0 && ` (have ${i.quantity_purchased}/${i.quantity_required})`}</> : <>Bought {i.quantity_purchased}</>} · {fmt(i.est_unit_price)} each
+                          {onlyOut || !done ? <>Need <b>{outstandingQty(i)}</b>{i.quantity_purchased > 0 && ` (have ${i.quantity_purchased}/${i.quantity_required})`}</> : <>Bought {i.quantity_purchased}</>} {i.est_unit_price > 0 && <> · {fmt(i.est_unit_price)} each</>}
                         </p>
                       </div>
-                      <div className="text-right"><p className="text-sm font-medium">{fmt(onlyOut ? outstandingCost(i) : estimatedCost(i))}</p><span className="no-print"><PriorityChip p={i.priority} /></span></div>
+                      <div className="text-right"><p className="text-sm font-medium">{(onlyOut ? outstandingCost(i) : estimatedCost(i)) > 0 ? fmt(onlyOut ? outstandingCost(i) : estimatedCost(i)) : ""}</p><span className="no-print"><PriorityChip p={i.priority} /></span></div>
                     </li>);
                 })}
               </ul>
             </section>))}
-          <div className="card flex items-center justify-between p-4"><span className="text-sm text-ink-soft">Estimated total ({shownItems.length} items)</span><span className="font-serif text-2xl">{fmt(total)}</span></div>
+          <div className="card flex items-center justify-between p-4"><span className="text-sm text-ink-soft">{total > 0 ? `Estimated total (${shownItems.length} items)` : `${shownItems.length} items to buy`}</span>{total > 0 && <span className="font-serif text-2xl">{fmt(total)}</span>}</div>
         </div>)}
       {buying && <PurchaseModal item={buying} onClose={() => setBuying(null)} />}
       {untick && (
