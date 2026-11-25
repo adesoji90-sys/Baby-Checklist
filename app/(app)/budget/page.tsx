@@ -5,9 +5,12 @@ import { BudgetBanner, PageHeader, Progress, Stat } from "@/components/ui";
 import { CompareBars, CompletionDonut, SpendDonut } from "@/components/Charts";
 import { actualCost, budgetLevel, categoryStats, totals } from "@/lib/calc";
 import { fmtDate, money } from "@/lib/format";
+import { useItemModals } from "@/components/useItemModals";
+import { Pencil } from "lucide-react";
 
 export default function BudgetPage() {
   const { items, categories, settings: s } = useData();
+  const m = useItemModals();
   const t = useMemo(() => totals(items, s.overall_budget), [items, s.overall_budget]);
   const stats = useMemo(() => categoryStats(categories, items), [categories, items]);
   const fmt = (n: number) => money(n, s.currency);
@@ -46,11 +49,12 @@ export default function BudgetPage() {
         <h2 className="mb-3 text-xl">Purchase records</h2>
         {!log.length ? <p className="text-sm text-ink-soft">No purchases recorded yet.</p> : (
           <table className="w-full min-w-[560px] text-sm">
-            <thead className="text-left text-xs uppercase text-ink-mute"><tr><th className="pb-2">Date</th><th className="pb-2">Item</th><th className="pb-2">Shop</th><th className="pb-2 text-right">Qty</th><th className="pb-2 text-right">Paid</th></tr></thead>
+            <thead className="text-left text-xs uppercase text-ink-mute"><tr><th className="pb-2">Date</th><th className="pb-2">Item</th><th className="pb-2">Shop</th><th className="pb-2 text-right">Qty</th><th className="pb-2 text-right">Paid</th><th className="pb-2"></th></tr></thead>
             <tbody className="divide-y divide-sand-100">{log.map((i) => (
-              <tr key={i.id}><td className="py-2">{fmtDate(i.purchase_date)}</td><td className="py-2">{i.name}{i.notes && <span className="block text-xs text-ink-mute">{i.notes}</span>}</td><td className="py-2">{i.vendor ?? "—"}</td><td className="py-2 text-right">{i.quantity_purchased}</td><td className="py-2 text-right">{fmt(actualCost(i))}</td></tr>))}</tbody>
+              <tr key={i.id}><td className="py-2">{fmtDate(i.purchase_date)}</td><td className="py-2">{i.name}{i.notes && <span className="block text-xs text-ink-mute">{i.notes}</span>}</td><td className="py-2">{i.vendor ?? "—"}</td><td className="py-2 text-right">{i.quantity_purchased}</td><td className="py-2 text-right">{fmt(actualCost(i))}</td><td className="py-2 text-right"><button onClick={() => m.pay(i)} className="btn-ghost px-2 py-1 text-xs" aria-label={`Edit expense ${i.name}`}><Pencil size={14} />Edit</button></td></tr>))}</tbody>
           </table>)}
       </section>
+      {m.node}
     </>
   );
 }

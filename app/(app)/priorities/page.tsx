@@ -41,7 +41,7 @@ export default function PrioritiesPage() {
       <div className="mb-3 flex items-center justify-between"><p className="text-sm text-ink-soft">{cur.label}</p>
         <label className="m-0 flex cursor-pointer items-center gap-2 text-xs normal-case tracking-normal"><input type="checkbox" checked={hideDone} onChange={(e) => setHideDone(e.target.checked)} />Hide completed</label></div>
       {!shown.length ? <Empty>{cur.its.length ? "Everything here is bought. 🎉" : "No items in this priority yet."}</Empty> :
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{shown.map((i) => <ItemCard key={i.id} item={i} onBuy={() => m.buy(i)} onEdit={() => m.edit(i)} onDelete={() => m.del(i)} />)}</div>}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{shown.map((i) => <ItemCard key={i.id} item={i} onBuy={() => m.buy(i)} onEdit={() => m.edit(i)} onDelete={() => m.del(i)} onEditExpense={() => m.pay(i)} />)}</div>}
       {m.node}
     </>
   );

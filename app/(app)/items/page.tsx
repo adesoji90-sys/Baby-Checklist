@@ -38,7 +38,7 @@ export default function ItemsPage() {
         <select aria-label="Sort" value={sort} onChange={(e) => setSort(e.target.value)}><option value="name">Sort: Name</option><option value="priority">Sort: Priority</option><option value="price_high">Sort: Price (high → low)</option><option value="price_low">Sort: Price (low → high)</option><option value="date">Sort: Purchase date</option></select>
       </div>
       {loading ? <p className="text-ink-soft">Loading…</p> : !list.length ? <Empty>No items match. Try clearing a filter, or add a new item.</Empty> :
-        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{list.map((i) => <ItemCard key={i.id} item={i} onBuy={() => m.buy(i)} onEdit={() => m.edit(i)} onDelete={() => m.del(i)} />)}</div>}
+        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">{list.map((i) => <ItemCard key={i.id} item={i} onBuy={() => m.buy(i)} onEdit={() => m.edit(i)} onDelete={() => m.del(i)} onEditExpense={() => m.pay(i)} />)}</div>}
       {m.node}
     </>
   );

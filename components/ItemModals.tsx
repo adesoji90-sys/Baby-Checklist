@@ -142,6 +142,52 @@ export function PurchaseModal({ item, onClose }: { item: Item; onClose: () => vo
   );
 }
 
+/** Correct an existing expense: total quantity bought, price each, date, shop. Setting quantity to 0 clears the purchase. */
+export function EditPurchaseModal({ item, onClose }: { item: Item; onClose: () => void }) {
+  const { reload, settings } = useData();
+  const [qty, setQty] = useState(String(item.quantity_purchased));
+  const [price, setPrice] = useState(item.actual_unit_price != null ? String(item.actual_unit_price) : "");
+  const [date, setDate] = useState(item.purchase_date ?? todayISO());
+  const [vendor, setVendor] = useState(item.vendor ?? "");
+  const [notes, setNotes] = useState(item.notes ?? "");
+  const [busy, setBusy] = useState(false); const [err, setErr] = useState("");
+  const total = Math.floor(num(qty));
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault();
+    if (total < 0) return setErr("Quantity cannot be negative.");
+    if (total > 0 && price.trim() === "") return setErr("Enter the price you paid for each one.");
+    if (num(price) < 0) return setErr("Price cannot be negative.");
+    setBusy(true);
+    const clear = total === 0;
+    const { error } = await createClient().from("items").update({
+      quantity_purchased: total, actual_unit_price: clear ? null : num(price),
+      purchase_date: clear ? null : date, vendor: clean(vendor), notes: clean(notes),
+    }).eq("id", item.id);
+    if (error) { setErr(error.message); setBusy(false); return; }
+    await reload(); onClose();
+  }
+  return (
+    <Modal title="Edit expense" onClose={onClose}>
+      <p className="mb-4 text-sm text-ink-soft"><b className="text-ink">{item.name}</b> — needs {item.quantity_required}. Change what you actually bought and paid.</p>
+      <form onSubmit={save} className="space-y-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div><label>Total quantity bought</label><input type="number" inputMode="numeric" min={0} step={1} value={qty} onChange={(e) => setQty(e.target.value)} autoFocus /></div>
+          <div><label>Price paid each ({settings.currency})</label><input type="number" inputMode="decimal" min={0} step="any" value={price} onChange={(e) => setPrice(e.target.value)} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label>Purchase date</label><input type="date" value={date} onChange={(e) => setDate(e.target.value)} /></div>
+          <div><label>Shop / vendor</label><input value={vendor} onChange={(e) => setVendor(e.target.value)} /></div>
+        </div>
+        <div><label>Notes</label><input value={notes} onChange={(e) => setNotes(e.target.value)} /></div>
+        <p className="text-xs text-ink-soft">{total === 0 ? "Quantity 0 clears this purchase." : `Total spent: ${settings.currency} ${(total * num(price)).toLocaleString()}`}</p>
+        {err && <p role="alert" className="rounded-xl bg-clay-100 px-3 py-2 text-sm text-clay-600">{err}</p>}
+        <div className="flex gap-2"><button type="button" className="btn-ghost flex-1" onClick={onClose}>Cancel</button><button className="btn-primary flex-1" disabled={busy}>{busy ? "Saving…" : "Save changes"}</button></div>
+      </form>
+    </Modal>
+  );
+}
+
 export function DeleteItemModal({ item, onClose }: { item: Item; onClose: () => void }) {
   const { reload } = useData();
   const [busy, setBusy] = useState(false); const [err, setErr] = useState("");

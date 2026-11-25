@@ -7,7 +7,7 @@ import ItemImage from "./ItemImage";
 import { PriorityChip, StatusChip } from "./ui";
 import { useData } from "./DataProvider";
 
-export default function ItemCard({ item, onBuy, onEdit, onDelete }: { item: Item; onBuy: () => void; onEdit: () => void; onDelete: () => void }) {
+export default function ItemCard({ item, onBuy, onEdit, onDelete, onEditExpense }: { item: Item; onBuy: () => void; onEdit: () => void; onDelete: () => void; onEditExpense?: () => void }) {
   const { categories, settings: s } = useData();
   const st = itemStatus(item); const out = outstandingQty(item);
   const cat = categories.find((c) => c.id === item.category_id);
@@ -30,6 +30,7 @@ export default function ItemCard({ item, onBuy, onEdit, onDelete }: { item: Item
         <div className="mt-2 flex flex-wrap gap-1.5">
           {st !== "full" ? <button onClick={onBuy} className="btn-soft px-3 py-1.5 text-xs"><ShoppingCart size={14} />Record purchase</button>
             : <span className="chip bg-sage-100 text-sage-700"><Check size={12} className="mr-1" />Done</span>}
+          {item.quantity_purchased > 0 && onEditExpense && <button onClick={onEditExpense} className="btn-soft px-3 py-1.5 text-xs"><Pencil size={14} />Edit expense</button>}
           <button onClick={onEdit} className="btn-ghost px-3 py-1.5 text-xs" aria-label={`Edit ${item.name}`}><Pencil size={14} />Edit</button>
           <button onClick={onDelete} className="btn-ghost px-3 py-1.5 text-xs text-clay-600" aria-label={`Delete ${item.name}`}><Trash2 size={14} /></button>
         </div>
